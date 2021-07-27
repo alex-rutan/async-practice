@@ -1,6 +1,7 @@
 "use strict"
 const $RESULT_DIV = $("#resultDiv");
 const $GET_CARD_BUTTON = $('#get-card-button');
+const DECK_ID = [];
 
 /**
  * PART 1 :)
@@ -40,17 +41,24 @@ const $GET_CARD_BUTTON = $('#get-card-button');
 
 async function getNewDeckId() {
     let newDeck =  await axios.get('http://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
-    return newDeck.data.deck_id;
+    DECK_ID.push(newDeck.data.deck_id);
 }
 
-async function cardButtonClick(evt) {
-    let deckId = await getNewDeckId();
-    let resp = await axios.get(`http://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
-    let imgLink = resp.data.cards[0].image;
-    $RESULT_DIV.append(`<img src = ${imgLink}>`)
+async function cardButtonClick() {
+    
+    let deckId = DECK_ID[0];
+    try {
+        let resp = await axios.get(`http://deckofcardsapi.com/api/deck/${deckId}/draw/?count=1`);
+        let imgLink = resp.data.cards[0].image;
+        $RESULT_DIV.append(`<img src = ${imgLink}>`)
+    } catch (e) {
+        if (e instanceof TypeError) {
+            $GET_CARD_BUTTON.off("click", cardButtonClick);
+        }
+    }
 }
-
 
 
 $GET_CARD_BUTTON.on("click", cardButtonClick);
 
+getNewDeckId();
